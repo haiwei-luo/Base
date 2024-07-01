@@ -27,13 +27,23 @@ if __name__ == "__main__":
 
     seat_area_param = rospy.get_param("/receptionist/seat_area")
 
+    sofa_area_param = rospy.get_param("/receptionist/sofa_area")
+
+    max_people_on_sofa = rospy.get_param("/receptionist/max_people_on_sofa")
+
     seat_area = Polygon(seat_area_param)
+
+    sofa_area = Polygon(sofa_area_param)
+
+    # exclude the sofa area from the seat area
+    # seat_area = seat_area.difference(sofa_area)
 
     receptionist = Receptionist(
         wait_pose,
         wait_area,
         seat_pose,
         seat_area,
+        sofa_area,
         {
             "name": "charlie",
             "drink": "wine",
@@ -58,6 +68,7 @@ if __name__ == "__main__":
                 "max_outwear": "unknown",
             },
         },
+        max_people_on_sofa=max_people_on_sofa,
     )
 
     outcome = receptionist.execute()
