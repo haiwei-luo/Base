@@ -39,7 +39,7 @@ def handle_name(sentence_list, last_resort):
     if not last_resort or result != "unknown":
         return result
     else:
-        print("Last resort")
+        print("Last resort name")
         return handle_closest_spelt(sentence_list, available_names)
     
 
@@ -51,18 +51,28 @@ def handle_drink(sentence_list, last_resort):
     if result != "unknown":
         print(f"drink (spelt): {result}")
     else:
-        result = handle_similar_sound(sentence_list, available_drinks, 1)
+        result = handle_similar_sound(sentence_list, available_drinks, 0)
         print(f"drink (sound): {result}")
     
-    if result == "unknown":
-        return "unknown"
-
-    if result in available_single_drinks:
-        print(f"final attempt drink: {result}")
-        return result
+    if result != "unknown":
+        if result in available_single_drinks:
+            print(f"final attempt drink: {result}")
+            return result
+        else:
+            sentence_list.append(result)
+            return infer_second_drink(sentence_list)
     else:
-        sentence_list.append(result)
-        return infer_second_drink(sentence_list)
+        if not last_resort:
+            return "unknown"
+        else:
+            print("Last resort drink")
+            closest_spelt = handle_closest_spelt(sentence_list, available_drinks)
+            if closest_spelt in available_single_drinks:
+                print(f"final attempt during last resort drink: {closest_spelt}")
+                return closest_spelt
+            else:
+                sentence_list.append(closest_spelt)
+                return infer_second_drink(closest_spelt)
 
 
 def handle_similar_spelt(sentence_list, available_words, distance_threshold):
@@ -159,9 +169,12 @@ if __name__ == "__main__":
     sentence = "my name is axl and my favourite drink is tropical ef"
     speech_recovery(sentence)
     print("======")
-    sentence = "my name is axl and my favourite drink is pa jews"
+    sentence = "my name is axl and my favourite drink is p jews"
     speech_recovery(sentence)
     print("======")
     sentence = "my name is axasel and my favourite drink is orange juice juice"
+    speech_recovery(sentence)
+    print("======")
+    sentence = "my name is morgen and my favourite drink is mll"
     speech_recovery(sentence)
     print("======")
