@@ -1,7 +1,3 @@
-# from jellyfish import soundex, metaphone, nysiis, match_rating_codex,\
-#     levenshtein_distance, damerau_levenshtein_distance, hamming_distance,\
-#     jaro_similarity
-
 import jellyfish as jf
 
 from itertools import groupby
@@ -68,24 +64,6 @@ def handle_drink(sentence_list, last_resort):
         sentence_list.append(result)
         return infer_second_drink(sentence_list)
 
-        
-
-def infer_second_drink(sentence_list):
-    for input_word in sentence_list:
-        if input_word == "juice":
-            choices = ["pack", "orange", "tropical"]
-            closest_word =  handle_closest_spelt(sentence_list, choices)
-            if closest_word == "pack":
-                return "juice pack"
-            elif closest_word == "orange":
-                return "orange juice"
-            else:
-                return "tropical juice"
-        for available_word in available_double_drinks:
-            if input_word == available_word:
-                return double_drinks_dict[input_word]
-    return "unknown"
-
 
 def handle_similar_spelt(sentence_list, available_words, distance_threshold):
     for input_word in sentence_list:
@@ -103,6 +81,22 @@ def handle_similar_sound(sentence_list, available_words, distance_threshold):
             if distance <= distance_threshold:
                 print(input_word, available_word)
                 return available_word
+    return "unknown"     
+
+def infer_second_drink(sentence_list):
+    for input_word in sentence_list:
+        if input_word == "juice":
+            choices = ["pack", "orange", "tropical"]
+            closest_word =  handle_closest_spelt(sentence_list, choices)
+            if closest_word == "pack":
+                return "juice pack"
+            elif closest_word == "orange":
+                return "orange juice"
+            else:
+                return "tropical juice"
+        for available_word in available_double_drinks:
+            if input_word == available_word:
+                return double_drinks_dict[input_word]
     return "unknown"
 
 def handle_closest_spelt(sentence_list, choices):
@@ -115,6 +109,7 @@ def handle_closest_spelt(sentence_list, choices):
                 closest_distance = distance
                 closest_word = available_word
     return closest_word
+
 
 def get_damerau_levenshtein_distance(word_1, word_2):
     return jf.damerau_levenshtein_distance(word_1, word_2)
@@ -132,7 +127,7 @@ def get_levenshtein_soundex_distance(word_1, word_2):
 
 # print(jf.soundex("juice"), jf.soundex("shoes"))
 
-print(jf.levenshtein_distance(jf.soundex("jane"), jf.soundex("axasel")))
+# print(jf.levenshtein_distance(jf.soundex("jane"), jf.soundex("axasel")))
 
 # available_names  = ["adel", "angel", "axel", "charlie", "jane", "jules", "morgan", "paris", "robin", "simone"]
 # available_single_drinks = ["cola", "milk",]
