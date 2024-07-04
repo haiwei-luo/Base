@@ -22,40 +22,44 @@ double_drinks_dict = {"iced" : "iced tea",
                         # "juice": ["orange juice", "tropical juice", "juice pack"],
                         }
 available_drinks = list(set(available_single_drinks).union(set(available_double_drinks)))
+excluded_words = ["my", "name", "is", "and", "favourite","drink", "you", "can", "call", "me"]
 
 
 def speech_recovery(sentence):
-    sentence_list = sentence.split()
-    print(f"final name: {handle_name(sentence_list)}")
-    print(f"final drink: {handle_drink(sentence_list)}")
+    sentence_split = sentence.split()
+    sentence_list = list(set(sentence_split) - set(excluded_words))
+    print(f"final name: {handle_name(sentence_list, True)}")
+    print(f"final drink: {handle_drink(sentence_list, True)}")
     
 
-def handle_name(sentence_list):
+def handle_name(sentence_list, last_resort):
     result = handle_similar_spelt(sentence_list, available_names, 1)
-    if result != "":
+    if result != "unknown":
         print(f"name (spelt): {result}")
         return result
     else:
-        result = handle_similar_sound(sentence_list, available_names, 1)
+        result = handle_similar_sound(sentence_list, available_names, 0)
         print(f"name (sound): {result}")
+    if not last_resort or result != "unknown":
+        return result
+    else:
+        print("Last resort")
+        return handle_closest_spelt(sentence_list, available_names)
     
-    return result
-        
 
-
-def handle_drink(sentence_list):
+def handle_drink(sentence_list, last_resort):
     result = infer_second_drink(sentence_list)
-    if result != "":
+    if result != "unknown":
         return result
     result = handle_similar_spelt(sentence_list, available_drinks, 1)
-    if result != "":
+    if result != "unknown":
         print(f"drink (spelt): {result}")
     else:
-        result = handle_similar_sound(sentence_list, available_drinks, 0)
+        result = handle_similar_sound(sentence_list, available_drinks, 1)
         print(f"drink (sound): {result}")
     
-    if result == "":
-        return ""
+    if result == "unknown":
+        return "unknown"
 
     if result in available_single_drinks:
         print(f"final attempt drink: {result}")
@@ -80,7 +84,7 @@ def infer_second_drink(sentence_list):
         for available_word in available_double_drinks:
             if input_word == available_word:
                 return double_drinks_dict[input_word]
-    return ""
+    return "unknown"
 
 
 def handle_similar_spelt(sentence_list, available_words, distance_threshold):
@@ -89,7 +93,7 @@ def handle_similar_spelt(sentence_list, available_words, distance_threshold):
             distance = get_damerau_levenshtein_distance(input_word, available_word)
             if distance <= distance_threshold:
                 return available_word
-    return ""
+    return "unknown"
 
 
 def handle_similar_sound(sentence_list, available_words, distance_threshold):
@@ -97,13 +101,13 @@ def handle_similar_sound(sentence_list, available_words, distance_threshold):
         for available_word in available_words:
             distance = get_levenshtein_soundex_distance(input_word, available_word)
             if distance <= distance_threshold:
-                print(input_word)
+                print(input_word, available_word)
                 return available_word
-    return ""
+    return "unknown"
 
 def handle_closest_spelt(sentence_list, choices):
-    closest_distance = get_damerau_levenshtein_distance(sentence_list[0], choices[0])
-    closest_word = choices[0]
+    closest_distance = float('inf')
+    closest_word = None
     for input_word in sentence_list:
         for available_word in choices:
             distance = get_damerau_levenshtein_distance(input_word, available_word)
@@ -128,7 +132,7 @@ def get_levenshtein_soundex_distance(word_1, word_2):
 
 # print(jf.soundex("juice"), jf.soundex("shoes"))
 
-# print(jf.levenshtein_distance(jf.soundex("jane"), jf.soundex("jaydon")))
+print(jf.levenshtein_distance(jf.soundex("jane"), jf.soundex("axasel")))
 
 # available_names  = ["adel", "angel", "axel", "charlie", "jane", "jules", "morgan", "paris", "robin", "simone"]
 # available_single_drinks = ["cola", "milk",]
@@ -154,12 +158,15 @@ if __name__ == "__main__":
     sentence = "my name is jay and my favourite drink is mill"
     speech_recovery(sentence)
     print("======")
-    sentence = "my name is jayne and my favourite drink is orang juice"
+    sentence = "my name is jayne and my favourite drink is oras juice"
     speech_recovery(sentence)
     print("======")
     sentence = "my name is axl and my favourite drink is tropical ef"
     speech_recovery(sentence)
     print("======")
-    sentence = "my name is axl and my favourite drink is orange juice juice"
+    sentence = "my name is axl and my favourite drink is pa jews"
+    speech_recovery(sentence)
+    print("======")
+    sentence = "my name is axasel and my favourite drink is orange juice juice"
     speech_recovery(sentence)
     print("======")
