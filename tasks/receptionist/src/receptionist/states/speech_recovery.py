@@ -11,7 +11,7 @@ import numpy as np
 
 available_names  = ["adel", "angel", "axel", "charlie", "jane", "jules", "morgan", "paris", "robin", "simone"]
 available_single_drinks = ["cola", "milk",]
-available_double_drinks = ["iced", "tea", "juice", "pack", "orange", "red", "wine", "tropical"]
+available_double_drinks = ["iced", "tea", "pack", "juice", "orange", "red", "wine", "tropical"]
 double_drinks_dict = {"iced" : "iced tea", 
                         "tea": "iced tea", 
                         "pack" : "juice pack",
@@ -19,43 +19,71 @@ double_drinks_dict = {"iced" : "iced tea",
                         "red" : "red wine",
                         "wine" : "red wine",
                         "tropical" : "tropical juice",
-                        "juice": ["orange juice", "tropical juice", "juice pack"],
+                        # "juice": ["orange juice", "tropical juice", "juice pack"],
                         }
 available_drinks = list(set(available_single_drinks).union(set(available_double_drinks)))
 
 
 def speech_recovery(sentence):
     sentence_list = sentence.split()
-    handle_name(sentence_list)
-    handle_drink(sentence_list)
+    print(f"final name: {handle_name(sentence_list)}")
+    print(f"final drink: {handle_drink(sentence_list)}")
     
 
 def handle_name(sentence_list):
-    result = handle_similar_spelt(sentence_list, "name", 1)
+    result = handle_similar_spelt(sentence_list, available_names, 1)
     if result != "":
         print(f"name (spelt): {result}")
+        return result
     else:
-        result = handle_similar_sound(sentence_list, "name", 1)
+        result = handle_similar_sound(sentence_list, available_names, 1)
         print(f"name (sound): {result}")
+    
+    return result
         
 
 
 def handle_drink(sentence_list):
-    result = handle_similar_spelt(sentence_list, "drink", 1)
+    result = infer_second_drink(sentence_list)
+    if result != "":
+        return result
+    result = handle_similar_spelt(sentence_list, available_drinks, 1)
     if result != "":
         print(f"drink (spelt): {result}")
     else:
-        result = handle_similar_sound(sentence_list, "drink", 0)
+        result = handle_similar_sound(sentence_list, available_drinks, 0)
         print(f"drink (sound): {result}")
+    
+    if result == "":
+        return ""
+
+    if result in available_single_drinks:
+        print(f"final attempt drink: {result}")
+        return result
+    else:
+        sentence_list.append(result)
+        return infer_second_drink(sentence_list)
+
         
 
+def infer_second_drink(sentence_list):
+    for input_word in sentence_list:
+        if input_word == "juice":
+            choices = ["pack", "orange", "tropical"]
+            closest_word =  handle_closest_spelt(sentence_list, choices)
+            if closest_word == "pack":
+                return "juice pack"
+            elif closest_word == "orange":
+                return "orange juice"
+            else:
+                return "tropical juice"
+        for available_word in available_double_drinks:
+            if input_word == available_word:
+                return double_drinks_dict[input_word]
+    return ""
 
 
-def handle_similar_spelt(sentence_list, transcribed_type, distance_threshold):
-    if transcribed_type == "name":
-        available_words = available_names
-    else:
-        available_words = available_drinks
+def handle_similar_spelt(sentence_list, available_words, distance_threshold):
     for input_word in sentence_list:
         for available_word in available_words:
             distance = get_damerau_levenshtein_distance(input_word, available_word)
@@ -63,11 +91,8 @@ def handle_similar_spelt(sentence_list, transcribed_type, distance_threshold):
                 return available_word
     return ""
 
-def handle_similar_sound(sentence_list, transcribed_type, distance_threshold):
-    if transcribed_type == "name":
-        available_words = available_names
-    else:
-        available_words = available_drinks
+
+def handle_similar_sound(sentence_list, available_words, distance_threshold):
     for input_word in sentence_list:
         for available_word in available_words:
             distance = get_levenshtein_soundex_distance(input_word, available_word)
@@ -75,6 +100,17 @@ def handle_similar_sound(sentence_list, transcribed_type, distance_threshold):
                 print(input_word)
                 return available_word
     return ""
+
+def handle_closest_spelt(sentence_list, choices):
+    closest_distance = get_damerau_levenshtein_distance(sentence_list[0], choices[0])
+    closest_word = choices[0]
+    for input_word in sentence_list:
+        for available_word in choices:
+            distance = get_damerau_levenshtein_distance(input_word, available_word)
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_word = available_word
+    return closest_word
 
 def get_damerau_levenshtein_distance(word_1, word_2):
     return jf.damerau_levenshtein_distance(word_1, word_2)
@@ -118,6 +154,12 @@ if __name__ == "__main__":
     sentence = "my name is jay and my favourite drink is mill"
     speech_recovery(sentence)
     print("======")
-    sentence = "my name is jayne and my favourite drink is shoes"
+    sentence = "my name is jayne and my favourite drink is orang juice"
+    speech_recovery(sentence)
+    print("======")
+    sentence = "my name is axl and my favourite drink is tropical ef"
+    speech_recovery(sentence)
+    print("======")
+    sentence = "my name is axl and my favourite drink is orange juice juice"
     speech_recovery(sentence)
     print("======")
