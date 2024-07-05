@@ -143,7 +143,7 @@ class GetNameAndDrink(smach.StateMachine):
                 "POST_RECOVERY_DECISION",
                 self.PostRecoveryDecision(guest_id=self._guest_id, param_key=self._param_key),
                 transitions={
-                    "failed": "failed"
+                    "failed": "failed",
                     "failed_name": "failed_name",
                     "failed_drink": "failed_drink",
                 },

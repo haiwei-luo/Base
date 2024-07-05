@@ -9,12 +9,12 @@ from lasr_vision_msgs.srv import (
     CroppedDetectionResponse,
     CroppedDetection,
 )
-
+from lasr_vision_msgs.msg import CDRequest
 
 class CheckSofa(smach.StateMachine):
 
     def __init__(
-        self,, sofa_area: ShapelyPolygon, max_people_on_sofa: int
+        self, sofa_area: ShapelyPolygon, max_people_on_sofa: int
     ):
 
         smach.StateMachine.__init__(
@@ -32,7 +32,7 @@ class CheckSofa(smach.StateMachine):
                 smach_ros.ServiceState(
                     "vision/cropped_detection",
                     CroppedDetection,
-                    request=CroppedDetectionRequest(
+                    request=[CDRequest(
                         method="closest",
                         use_mask=True,
                         yolo_model="yolov8x-seg.pt",
@@ -51,13 +51,13 @@ class CheckSofa(smach.StateMachine):
                                 ]
                             )
                         ],
-                    ),
+                    )],
+                    response_cb=self.detections_cb,
                 ),
                 transitions={
                     "has_free_space": "has_free_space",
                     "no_free_space": "no_free_space",
                 },
-                response_cb=self.detections_cb,
             )
 
     def detections_cb(self, userdata, response):

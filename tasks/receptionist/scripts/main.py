@@ -48,6 +48,7 @@ if __name__ == "__main__":
         sweep_points,
         seat_area,
         sofa_area,
+        [0.0,0.0,0.0],
         {
             "name": "charlie",
             "drink": "wine",
